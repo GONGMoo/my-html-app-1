@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新中式抽签 - 舞狮绣球祈福</title>
+    <script src="https://image.uc.cn/s/uae/g/3n/mos-production/fontawesome-free-7.1.0-web/js/all.min.js"></script>
+    <script src="https://image.uc.cn/s/uae/g/3n/mos-production/0915/3.4.17.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #1a0a0a;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-color: #1a0a0a;
+        }
+        
+        .background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            filter: brightness(0.8);
+        }
+        
+        .decorative-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, rgba(26, 10, 10, 0.9) 70%);
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .chinese-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(218, 165, 32, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(198, 12, 48, 0.05) 0%, transparent 30%);
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #f5e6ca;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(218, 165, 32, 0.7);
+            position: relative;
+        }
+        
+        .title h1 {
+            font-size: 3.5rem;
+            letter-spacing: 0.5rem;
+        }
+        
+        .title h2 {
+            font-size: 1.5rem;
+            font-weight: normal;
+            margin-top: 0.5rem;
+            color: #d6a945;
+        }
+        
+        .title::before, .title::after {
+            content: "❖";
+            color: #d6a945;
+            font-size: 2rem;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .title::before {
+            left: -3rem;
+        }
+        
+        .title::after {
+            right: -3rem;
+        }
+        
+        .lion-ball-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 2rem auto;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .lion-ball-container:hover {
+            transform: scale(1.05);
+        }
+        
+        .lion-ball {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(218, 165, 32, 0.7));
+            transition: all 0.3s ease;
+        }
+        
+        .lion-ball:hover {
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+        }
+        
+        .shaking {
+            animation: shake 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px) rotate(-5deg); }
+            20%, 40%, 60%, 80% { transform: translateX(10px) rotate(5deg); }
+        }
+        
+        .glow-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .lion-ball-container.active .glow-effect {
+            opacity: 1;
+        }
+        
+        .instruction {
+            color: #f5e6ca;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .result-container {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(145deg, rgba(26, 10, 10, 0.9) 0%, rgba(60, 20, 20, 0.9) 100%);
+            border: 2px solid #d6a945;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(214, 169, 69, 0.2);
+            color: #f5e6ca;
+            z-index: 20;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(214, 169, 69, 0.5);
+        }
+        
+        .fortune-level {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .level-ss {
+            color: #ff3333;
+        }
+        
+        .level-sj {
+            color: #ff9933;
+        }
+        
+        .level-zj {
+            color: #ffcc33;
+        }
+        
+        .level-zp {
+            color: #33cc33;
+        }
+        
+        .level-xx {
+            color: #999999;
+        }
+        
+        .fortune-id {
+            font-size: 1.2rem;
+            color: #d6a945;
+            background-color: rgba(26, 10, 10, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #d6a945;
+        }
+        
+        .fortune-content {
+            margin-bottom: 2rem;
+        }
+        
+        .fortune-text {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background-color: rgba(40, 15, 15, 0.7);
+            border-radius: 10px;
+            border-left: 5px solid #d6a945;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        
+        .fortune-meaning {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #f0d8a8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-draw {
+            background: linear-gradient(to right, #c60c30, #e63946);
+            color: #f5e6ca;
+            box-shadow: 0 5px 15px rgba(198, 12, 48, 0.4);
+        }
+        
+        .btn-draw:hover {
+            background: linear-gradient(to right, #e63946, #ff6b6b);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(198, 12, 48, 0.6);
+        }
+        
+        .btn-close {
+            background: linear-gradient(to right, #1a0a0a, #333);
+            color: #d6a945;
+            border: 1px solid #d6a945;
+        }
+        
+        .btn-close:hover {
+            background: linear-gradient(to right, #333, #555);
+            transform: translateY(-3px);
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        .floating-element {
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(214, 169, 69, 0.3);
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        .fortune-stick {
+            position: absolute;
+            width: 20px;
+            height: 300px;
+            background: linear-gradient(to bottom, #8b0000, #c60c30);
+            border-radius: 10px;
+            transform-origin: bottom center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 15;
+        }
+        
+        .fortune-stick::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background-color: #d6a945;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .fortune-stick.show {
+            opacity: 1;
+            animation: stickAppear 1s ease forwards;
+        }
+        
+        @keyframes stickAppear {
+            0% { transform: translateY(100px) rotate(0deg); opacity: 0; }
+            100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 1rem;
+            width: 100%;
+            text-align: center;
+            color: rgba(245, 230, 202, 0.5);
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+        
+        @media (max-width: 768px) {
+            .title h1 {
+                font-size: 2.5rem;
+            }
+            
+            .lion-ball-container {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .fortune-text {
+                font-size: 1.4rem;
+            }
+            
+            .fortune-level {
+                font-size: 2rem;
+            }
+            
+            .result-container {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title h1 {
+                font-size: 2rem;
+                letter-spacing: 0.3rem;
+            }
+            
+            .lion-ball-container {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰层 -->
+    <div class="background-layer">
+        <img src="https://agent.qianwen.com/mos/9158adc8982b4267949755106edd367d/7c9383acb12248176df99efd528620bc" alt="舞狮背景" class="background-image">
+        <div class="decorative-overlay"></div>
+        <div class="chinese-pattern"></div>
+    </div>
+    
+    <!-- 浮动装饰元素 -->
+    <div class="floating-elements" id="floatingElements"></div>
+    
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <div class="title">
+            <h1>舞狮绣球祈福签</h1>
+            <h2>点击绣球，抽取您的新中式运势签</h2>
+        </div>
+        
+        <!-- 舞狮绣球 -->
+        <div class="lion-ball-container" id="lionBallContainer">
+            <div class="glow-effect"></div>
+            <img src="https://agent.qianwen.com/mos/9158adc8982b4267949755106edd367d/e2a4e236a8b774c579763e8cb7885872" alt="舞狮绣球" class="lion-ball" id="lionBall">
+        </div>
+        
+        <!-- 签筒动画效果 -->
+        <div class="fortune-stick" id="fortuneStick"></div>
+        
+        <!-- 操作提示 -->
+        <div class="instruction" id="instruction">
+            <i class="fas fa-hand-point-up"></i> 点击绣球开始抽签
+        </div>
+        
+        <!-- 抽签结果 -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">
+                <div class="fortune-level" id="fortuneLevel">【上上签】</div>
+                <div class="fortune-id" id="fortuneId">第 1 签</div>
+            </div>
+            
+            <div class="fortune-content">
+                <div class="fortune-text" id="fortuneText">
+                    青鸾衔诏九霄来，云路鹏程万里开。
+                </div>
+                <div class="fortune-meaning" id="fortuneMeaning">
+                    寓意：天降奇遇，贵人引路如青鸾衔诏，事业突破瓶颈，官职或事业版图将如鹏鸟展翅，直上青云。
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-draw" id="drawAgainBtn">
+                    <i class="fas fa-redo"></i> 再抽一签
+                </button>
+                <button class="btn btn-close" id="closeResultBtn">
+                    <i class="fas fa-times"></i> 收起签文
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>新中式抽签系统 · 传统与现代的美学融合</p>
+    </div>
+    
+    <script>
+        // 签文数据
+        const fortunes = {
+            "上上签": [
+                {
+                    text: "青鸾衔诏九霄来，云路鹏程万里开。",
+                    meaning: "天降奇遇，贵人引路如青鸾衔诏，事业突破瓶颈，官职或事业版图将如鹏鸟展翅，直上青云。"
+                },
+                {
+                    text: "月老红线系双心，鸾凤和鸣福满庭。",
+                    meaning: "缘分天定，情缘如月老红线紧系，夫妻相敬如宾，家宅福泽绵延，白首不离。"
+                },
+                {
+                    text: "松柏长青身自健，霞光满室寿无疆。",
+                    meaning: "身心如松柏经霜愈茂，百病不侵，寿元绵长，精神矍铄如霞光映照。"
+                },
+                {
+                    text: "金粟盈仓星斗灿，财源似海自东来。",
+                    meaning: "财富如金粟满仓、星斗璀璨，正财偏财双旺，财源如东海潮涌，不劳而获。"
+                },
+                {
+                    text: "蟾宫折桂步青云，文光射斗耀八方。",
+                    meaning: "科场得意如蟾宫折桂，才思如文光射斗，名次登顶，学识通达天地。"
+                },
+                {
+                    text: "兰桂齐芳家道盛，庭前笑语满庭春。",
+                    meaning: "子孙贤孝如兰桂齐芳，家宅兴旺如春日满庭，和乐融融，福气盈门。"
+                },
+                {
+                    text: "舟轻帆满凌云去，山水有情伴客行。",
+                    meaning: "旅途如舟轻帆满，顺风顺水至佳境，山水相逢皆成美景，所往皆得欢心。"
+                },
+                {
+                    text: "四海知音同舟济，贵人如月照前程。",
+                    meaning: "八方友朋皆成知己，贵人如明月照路，助力如舟共济，无往不利。"
+                },
+                {
+                    text: "龙吟九霄风云会，才德双全耀世间。",
+                    meaning: "才智如龙吟九霄，机遇风云际会，德才兼备，名动四方。"
+                },
+                {
+                    text: "宝库开时金满屋，福星高照日生辉。",
+                    meaning: "财库豁然洞开，金银满屋，福星常伴，日日生辉，富足无忧。"
+                },
+                {
+                    text: "麟儿降世祥云绕，兰孙满堂庆有余。",
+                    meaning: "贵子如麟儿降世，祥云环绕，子孙聪慧如兰，家道昌隆，福庆绵长。"
+                },
+                {
+                    text: "天开鸿运通四海，一念纯真福自随。",
+                    meaning: "天道酬善，鸿运通达四海，心念纯正则福气随行，百事皆吉。"
+                }
+            ],
+            "上吉签": [
+                {
+                    text: "云开月出照前程，骏马加鞭事竟成。",
+                    meaning: "之前的迷雾即将散去，前途一片光明。此时若能加倍努力（加鞭），事业必将大功告成，升职加薪在望。"
+                },
+                {
+                    text: "红绳系足良缘定，花开并蒂喜盈门。",
+                    meaning: "缘分已至，感情稳定。单身者将遇良人，有伴侣者感情升温，是谈婚论嫁或关系更进一步的好时机。"
+                },
+                {
+                    text: "源通江海财星照，积少成多富满仓。",
+                    meaning: "财源如江水般通畅，正财运极佳。虽非一夜暴富，但通过稳健经营或工作积累，财富将稳步增长，库藏充盈。"
+                },
+                {
+                    text: "沉疴尽去身轻健，松柏长青福寿延。",
+                    meaning: "旧疾将愈，身体日益强健。保持良好作息，便如松柏般四季常青，健康长寿，精神饱满。"
+                },
+                {
+                    text: "十年磨剑锋芒露，金榜题名慰平生。",
+                    meaning: "长期的努力即将迎来收获期。考试运佳，思维敏捷，只要正常发挥，定能取得优异成绩，名列前茅。"
+                },
+                {
+                    text: "满堂和气春风暖，老少安康乐未央。",
+                    meaning: "家庭氛围和睦温馨，如沐春风。家中长辈健康，晚辈孝顺，无口舌之争，尽享天伦之乐。"
+                },
+                {
+                    text: "四海知音皆相助，贵人引路道宽平。",
+                    meaning: "人际关系和谐，容易结识志同道合的朋友。遇到困难时，会有贵人出面指点迷津，道路变得平坦宽阔。"
+                },
+                {
+                    text: "良禽择木而栖止，新巢稳固展宏图。",
+                    meaning: "是变动工作的好时机。能找到适合发展的平台（良木），新环境将让你大展拳脚，根基稳固。"
+                },
+                {
+                    text: "风向顺时帆自举，稳中求进利翻倍。",
+                    meaning: "市场大环境有利，投资运势上扬。切忌贪婪冒进，只要稳扎稳打，收益将十分可观。"
+                },
+                {
+                    text: "理直气壮冤屈雪，公道自在人心间。",
+                    meaning: "若遇纷争，真理站在你这一边。事情将得到公正解决，误会消除，结局令人满意。"
+                },
+                {
+                    text: "一路顺风千里目，山水有情伴君行。",
+                    meaning: "外出旅行或出差非常顺利，路途平安，风景宜人，不仅办事顺利，还能收获愉悦的心情。"
+                },
+                {
+                    text: "时来运转万事兴，心诚所至福自生。",
+                    meaning: "整体运势处于上升期，诸事顺遂。只要心怀诚意，积极行动，福气自然会源源不断地来到身边。"
+                }
+            ],
+            "中吉签": [
+                {
+                    text: "厚积薄发终有成，稳步前行福自临。",
+                    meaning: "积累已久，时机已至。事业上渐入佳境，无需急躁，脚踏实地推进，终将收获成果，晋升或项目顺利。"
+                },
+                {
+                    text: "情意渐深如春水，细水长流共白头。",
+                    meaning: "感情稳步升温，关系更趋稳固。单身者有望遇良缘，有伴者需多沟通经营，感情将如春水般绵长温馨。"
+                },
+                {
+                    text: "身心调和气自华，小疾无碍福自嘉。",
+                    meaning: "整体健康向好，偶有小恙（如疲劳、感冒）不碍大局。保持规律作息，便能身心舒畅，福气常伴。"
+                },
+                {
+                    text: "财源细水长流至，勤俭持家福满堂。",
+                    meaning: "正财稳健增长，非暴利但持续可观。宜储蓄理财，避免投机，财富将如细流汇海，渐成富足。"
+                },
+                {
+                    text: "学海无涯勤为径，成绩稳步上层楼。",
+                    meaning: "学习进展顺利，进步明显。考试或作业表现稳定，只需持续努力，便能稳步提升名次。"
+                },
+                {
+                    text: "家和万事兴，和睦如春水。",
+                    meaning: "家庭氛围和谐温馨，少有争执。长辈安康，子女孝顺，只需多些包容，便能共享天伦之乐。"
+                },
+                {
+                    text: "旅途顺遂心欢畅，风景如画伴君行。",
+                    meaning: "出行平安顺利，旅途愉悦。交通、天气皆宜，可尽情享受风景，收获美好回忆。"
+                },
+                {
+                    text: "朋友如茶淡而香，贵人相助路宽长。",
+                    meaning: "人际关系融洽，朋友真诚可靠。遇事易得他人援手，贵人暗中支持，道路渐宽。"
+                },
+                {
+                    text: "新机已现待把握，稳扎稳打展宏图。",
+                    meaning: "工作机会出现，但需审慎选择。若能踏实准备、主动争取，新平台将助力长远发展。"
+                },
+                {
+                    text: "稳中求进财源广，风险可控利自丰。",
+                    meaning: "投资环境温和，收益稳定。避免高风险操作，专注稳健项目，财富将稳步增长。"
+                },
+                {
+                    text: "公道自在人心，误会终将解。",
+                    meaning: "纠纷或争议有望和平化解。需耐心沟通、据理力争，最终得公正结果，无需过度焦虑。"
+                },
+                {
+                    text: "时运虽佳需努力，心正行直福自至。",
+                    meaning: "整体运势平稳向好，但非一帆风顺。保持积极心态、专注行动，福气自然汇聚。"
+                }
+            ],
+            "中平签": [
+                {
+                    text: "步履徐行无波澜，守成待机事自安。",
+                    meaning: "工作推进平稳，无大起大落。切忌冒进，专注本职，待时机成熟自可水到渠成。"
+                },
+                {
+                    text: "情意如常春水静，细语温存共日常。",
+                    meaning: "感情稳定但稍显平淡，需多用心经营细节（如一句问候、一次陪伴），避免因疏忽生冷。"
+                },
+                {
+                    text: "小恙微疾无大碍，调养身心福自长。",
+                    meaning: "偶有疲劳或小病（如感冒、失眠），整体健康尚可。勿忽视日常保养，早睡早起即为良方。"
+                },
+                {
+                    text: "财源涓滴渐积累，守成勿贪利自丰。",
+                    meaning: "收入稳定增长，但非暴利。宜储蓄理财，避免投机，小钱积少成多方为正道。"
+                },
+                {
+                    text: "学有所进不求速，勤思善问志自坚。",
+                    meaning: "进步明显但速度平缓，考试或作业表现中规中矩。切勿焦虑，专注每日积累即可。"
+                },
+                {
+                    text: "家宅安宁少波折，和睦相处乐融融。",
+                    meaning: "家庭氛围和谐，无重大矛盾，但亦无特别喜事。多沟通、少争执，珍惜平凡温馨。"
+                },
+                {
+                    text: "旅途平安无惊险，风景虽美心自安。",
+                    meaning: "出行顺利无意外，但无惊喜。享受平淡旅程，勿强求「完美体验」，安心即可。"
+                },
+                {
+                    text: "朋友往来寻常事，贵人偶现助微光。",
+                    meaning: "人际关系普通，偶有小帮助（如同事提点），但非关键助力。勿过度依赖，真诚待人即可。"
+                },
+                {
+                    text: "机会初现待甄别，踏实准备路自通。",
+                    meaning: "工作机会出现，但需仔细权衡（如薪资、发展）。勿急切签约，充分调研方为稳妥。"
+                },
+                {
+                    text: "市场平稳宜保守，稳健操作利长久。",
+                    meaning: "投资环境温和，收益稳定但不高。避免追涨杀跌，定投低风险项目更利长远。"
+                },
+                {
+                    text: "纠纷渐解需耐心，以和为贵是良方。",
+                    meaning: "争议有望和平解决，但过程需耗时。切忌情绪化，理性沟通可避免小失。"
+                },
+                {
+                    text: "时运平平心自定，脚踏实地福自生。",
+                    meaning: "整体运势平稳过渡，无特别机遇也无风险。专注当下行动，不求速成，福气自会沉淀。"
+                }
+            ],
+            "下下签": [
+                {
+                    text: "暗流涌动前路阻，谨防小人陷是非。",
+                    meaning: "工作易遇背后算计或突发变故，需低调行事、多留心眼。化解之道：避免卷入争端，重要决策前多方求证。"
+                },
+                {
+                    text: "情丝暗结生猜疑，言语不慎失真情。",
+                    meaning: "感情易因误会或沟通不畅生裂痕，需防冷战或第三者介入。化解之道：坦诚对话，勿因小事积怨。"
+                },
+                {
+                    text: "旧疾复发需静养，心浮气躁损元神。",
+                    meaning: "身体易疲累、旧病复发（如失眠、肠胃不适），情绪波动加剧隐患。化解之道：早睡早起，避免熬夜，可尝试静心冥想。"
+                },
+                {
+                    text: "财源暗漏如漏卮，贪心妄动损家资。",
+                    meaning: "易因投资失误、借贷或冲动消费破财，需防「小钱失大利」。化解之道：暂停高风险操作，优先储蓄保本。"
+                },
+                {
+                    text: "书山行路多荆棘，心浮气躁难精进。",
+                    meaning: "学习效率低下，易因分心或考试压力导致成绩下滑。化解之道：制定小目标，专注每日进步，忌熬夜突击。"
+                },
+                {
+                    text: "家宅不宁多口舌，小事积怨成大祸。",
+                    meaning: "家庭易因琐事争执（如经济、育儿），若不及时化解易升级矛盾。化解之道：主动倾听，用「小事化了」代替争论。"
+                },
+                {
+                    text: "远行多舛遇风波，舟车劳顿损身心。",
+                    meaning: "出行易遇延误、意外或身体不适，旅途疲惫影响心情。化解之道：备好应急药品，行程留余地，勿赶时间。"
+                },
+                {
+                    text: "交游不慎惹是非，轻信谗言失真心。",
+                    meaning: "易被表面朋友利用，或因听信谣言误判他人。化解之道：慢交朋友，多观察言行，远离爱搬弄是非者。"
+                },
+                {
+                    text: "新机未稳先失策，急躁签约陷泥潭。",
+                    meaning: "跳槽或面试易因仓促决定（如薪资不符、平台不稳）陷入被动。化解之道：暂缓行动，充分调研再签约。"
+                },
+                {
+                    text: "市场狂澜难逆流，贪利必致血本空。",
+                    meaning: "投资环境动荡，易因追涨杀跌或盲目跟风亏损。化解之道：暂停高风险操作，专注学习理财知识。"
+                },
+                {
+                    text: "是非纠缠难理清，情绪失控败己身。",
+                    meaning: "纠纷易陷入僵局，若急躁应对可能反受其害。化解之道：先冷静，再请专业人士介入，勿自行对抗。"
+                },
+                {
+                    text: "时运低迷需自省，积小善可转乾坤。",
+                    meaning: "整体运势低迷，易遇琐碎不顺。核心化解：每日做一件善事（如助人、行孝），心念转变，福气自生。"
+                }
+            ]
+        };
+        
+        // 元素引用
+        const lionBallContainer = document.getElementById('lionBallContainer');
+        const lionBall = document.getElementById('lionBall');
+        const instruction = document.getElementById('instruction');
+        const resultContainer = document.getElementById('resultContainer');
+        const fortuneLevel = document.getElementById('fortuneLevel');
+        const fortuneId = document.getElementById('fortuneId');
+        const fortuneText = document.getElementById('fortuneText');
+        const fortuneMeaning = document.getElementById('fortuneMeaning');
+        const drawAgainBtn = document.getElementById('drawAgainBtn');
+        const closeResultBtn = document.getElementById('closeResultBtn');
+        const fortuneStick = document.getElementById('fortuneStick');
+        const floatingElements = document.getElementById('floatingElements');
+        
+        // 抽签历史记录
+        let drawHistory = [];
+        let isDrawing = false;
+        
+        // 初始化浮动装饰元素
+        function initFloatingElements() {
+            const symbols = ["❖", "❈", "✿", "卍", "福", "囍", "吉", "祥"];
+            for (let i = 0; i < 15; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                element.style.left = `${Math.random() * 100}%`;
+                element.style.animationDelay = `${Math.random() * 5}s`;
+                element.style.animationDuration = `${15 + Math.random() * 10}s`;
+                element.style.fontSize = `${1 + Math.random() * 1.5}rem`;
+                floatingElements.appendChild(element);
+            }
+        }
+        
+        // 随机抽取签文
+        function drawFortune() {
+            if (isDrawing) return;
+            isDrawing = true;
+            
+            // 隐藏提示，显示抽签动画
+            instruction.style.opacity = '0';
+            
+            // 激活绣球容器
+            lionBallContainer.classList.add('active');
+            
+            // 播放摇晃动画
+            lionBall.classList.add('shaking');
+            
+            // 显示签筒动画
+            fortuneStick.classList.add('show');
+            
+            // 动画结束后显示结果
+            setTimeout(() => {
+                // 移除动画类
+                lionBall.classList.remove('shaking');
+                lionBallContainer.classList.remove('active');
+                
+                // 隐藏签筒
+                fortuneStick.classList.remove('show');
+                
+                // 随机选择签文等级（加权随机，好运签概率稍高）
+                const levels = ["上上签", "上吉签", "中吉签", "中平签", "下下签"];
+                const weights = [0.25, 0.25, 0.2, 0.2, 0.1]; // 权重分配
+                
+                let randomNum = Math.random();
+                let cumulativeWeight = 0;
+                let selectedLevel = "";
+                
+                for (let i = 0; i < levels.length; i++) {
+                    cumulativeWeight += weights[i];
+                    if (randomNum < cumulativeWeight) {
+                        selectedLevel = levels[i];
+                        break;
+                    }
+                }
+                
+                // 随机选择该等级下的签文
+                const levelFortunes = fortunes[selectedLevel];
+                const randomIndex = Math.floor(Math.random() * levelFortunes.length);
+                const selectedFortune = levelFortunes[randomIndex];
+                
+                // 记录抽签历史
+                const drawRecord = {
+                    level: selectedLevel,
+                    text: selectedFortune.text,
+                    meaning: selectedFortune.meaning,
+                    timestamp: new Date().toLocaleString()
+                };
+                drawHistory.push(drawRecord);
+                
+                // 更新结果界面
+                fortuneLevel.textContent = `【${selectedLevel}】`;
+                fortuneLevel.className = `fortune-level level-${getLevelClass(selectedLevel)}`;
+                fortuneId.textContent = `第 ${drawHistory.length} 签`;
+                fortuneText.textContent = selectedFortune.text;
+                fortuneMeaning.textContent = `寓意：${selectedFortune.meaning}`;
+                
+                // 显示结果容器
+                resultContainer.style.display = 'block';
+                
+                // 添加显示动画
+                resultContainer.style.opacity = '0';
+                resultContainer.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    resultContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    resultContainer.style.opacity = '1';
+                    resultContainer.style.transform = 'translateY(0)';
+                }, 50);
+                
+                isDrawing = false;
+            }, 1500);
+        }
+        
+        // 根据签文等级获取CSS类名
+        function getLevelClass(level) {
+            switch(level) {
+                case "上上签": return "ss";
+                case "上吉签": return "sj";
+                case "中吉签": return "zj";
+                case "中平签": return "zp";
+                case "下下签": return "xx";
+                default: return "ss";
+            }
+        }
+        
+        // 关闭结果面板
+        function closeResult() {
+            resultContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            resultContainer.style.opacity = '0';
+            resultContainer.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                resultContainer.style.display = 'none';
+                instruction.style.opacity = '0.9';
+            }, 300);
+        }
+        
+        // 事件监听
+        lionBallContainer.addEventListener('click', drawFortune);
+        drawAgainBtn.addEventListener('click', drawFortune);
+        closeResultBtn.addEventListener('click', closeResult);
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            initFloatingElements();
+            
+            // 添加初始动画
+            setTimeout(() => {
+                lionBallContainer.style.transition = 'transform 0.5s ease';
+                lionBallContainer.style.transform = 'scale(1)';
+            }, 300);
+        });
+        
+        // 添加键盘支持
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                if (resultContainer.style.display === 'block') {
+                    drawFortune();
+                } else {
+                    drawFortune();
+                }
+            }
+            
+            if (e.key === 'Escape' && resultContainer.style.display === 'block') {
+                closeResult();
+            }
+        });
+    </script>
+</body>
+</html>
